@@ -257,7 +257,7 @@ struct DrumTrainingView: View {
 
     private func cellColor(_ level: DrumStepLevel, active: Bool) -> Color {
         if active { return BarLoopTheme.orange }
-        switch level {
+        return switch level {
         case .off: Color.primary.opacity(0.08)
         case .normal: BarLoopTheme.indigo.opacity(0.75)
         case .accent: BarLoopTheme.cyan

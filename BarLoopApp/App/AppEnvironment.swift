@@ -28,7 +28,7 @@ final class AppEnvironment {
         await mediaLibrary.refresh()
         midi.start()
         midi.onAction = { [weak self] action in
-            guard let self else { return }
+            guard self != nil else { return }
             NotificationCenter.default.post(name: action.notificationName, object: nil)
         }
     }

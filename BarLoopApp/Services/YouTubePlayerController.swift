@@ -43,7 +43,10 @@ final class YouTubePlayerController: NSObject, MediaPlaybackControlling {
         state = .loading
         currentTime = 0
         duration = 0
-        webView.loadHTMLString(Self.html(videoID: videoID), baseURL: URL(string: "https://www.youtube-nocookie.com"))
+        webView.loadHTMLString(
+            Self.html(videoID: videoID, volume: volume, rate: rate),
+            baseURL: URL(string: "https://www.youtube-nocookie.com")
+        )
     }
 
     func play() {
@@ -64,7 +67,7 @@ final class YouTubePlayerController: NSObject, MediaPlaybackControlling {
         webView.evaluateJavaScript(javascript)
     }
 
-    private static func html(videoID: String) -> String {
+    private static func html(videoID: String, volume: Double, rate: Double) -> String {
         """
         <!doctype html>
         <html>
@@ -116,6 +119,7 @@ final class YouTubePlayerController: NSObject, MediaPlaybackControlling {
     }
 }
 
+@MainActor
 private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
     weak var target: WKScriptMessageHandler?
 
@@ -132,38 +136,35 @@ private final class WeakScriptMessageHandler: NSObject, WKScriptMessageHandler {
 }
 
 extension YouTubePlayerController: WKScriptMessageHandler {
-    nonisolated func userContentController(
+    func userContentController(
         _ userContentController: WKUserContentController,
         didReceive message: WKScriptMessage
     ) {
         guard let payload = message.body as? [String: Any],
               let type = payload["type"] as? String else { return }
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            switch type {
-            case "ready":
-                duration = payload["value"] as? Double ?? 0
-                state = .ready
-            case "state":
-                let code = payload["value"] as? Int ?? -1
-                state = switch code {
-                case 0: .ended
-                case 1: .playing
-                case 2: .paused
-                case 3: .loading
-                case 5: .ready
-                default: state
-                }
-            case "time":
-                guard let value = payload["value"] as? [String: Any] else { return }
-                currentTime = value["current"] as? Double ?? currentTime
-                duration = value["duration"] as? Double ?? duration
-            case "error":
-                let code = payload["value"] as? Int ?? 0
-                state = .failed(String(localized: "youtube.error.playback \(code)"))
-            default:
-                break
+        switch type {
+        case "ready":
+            duration = payload["value"] as? Double ?? 0
+            state = .ready
+        case "state":
+            let code = payload["value"] as? Int ?? -1
+            state = switch code {
+            case 0: .ended
+            case 1: .playing
+            case 2: .paused
+            case 3: .loading
+            case 5: .ready
+            default: state
             }
+        case "time":
+            guard let value = payload["value"] as? [String: Any] else { return }
+            currentTime = value["current"] as? Double ?? currentTime
+            duration = value["duration"] as? Double ?? duration
+        case "error":
+            let code = payload["value"] as? Int ?? 0
+            state = .failed(String(localized: "youtube.error.playback \(code)"))
+        default:
+            break
         }
     }
 }

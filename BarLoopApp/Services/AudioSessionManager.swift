@@ -37,14 +37,10 @@ final class AudioSessionManager {
         ) { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
-                currentRoute = routeDescription
-                onRouteChanged?()
+                self.currentRoute = self.routeDescription
+                self.onRouteChanged?()
             }
         })
-    }
-
-    deinit {
-        observers.forEach(NotificationCenter.default.removeObserver)
     }
 
     func activate() throws {
@@ -88,4 +84,3 @@ final class AudioSessionManager {
         return names.isEmpty ? String(localized: "audio.route.default") : names.joined(separator: ", ")
     }
 }
-
