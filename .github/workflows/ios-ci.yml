@@ -1,0 +1,38 @@
+name: iOS CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Run core regression tests
+        run: swift test --package-path Packages/BarLoopCore
+
+      - name: Build without signing
+        run: |
+          xcodebuild build \
+            -project BarLoop.xcodeproj \
+            -scheme BarLoop \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Compile iOS unit tests
+        run: |
+          xcodebuild build-for-testing \
+            -project BarLoop.xcodeproj \
+            -scheme BarLoop \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO

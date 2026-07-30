@@ -1,0 +1,3 @@
+"NSBluetoothAlwaysUsageDescription" = "BarLoop uses Bluetooth MIDI devices to control practice playback.";
+"NSLocalNetworkUsageDescription" = "BarLoop can discover network MIDI sessions you choose to use.";
+
