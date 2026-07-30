@@ -23,7 +23,8 @@ after changing targets, build settings, or resources.
 ## Tests
 
 The domain layer is a standalone Swift package so its regression suite can run
-without an iOS simulator:
+without an iOS simulator. It includes all 32 reference regressions from the web
+app plus native iOS backup, time/bar, and YouTube-ID coverage:
 
 ```bash
 swift test --package-path Packages/BarLoopCore

@@ -45,6 +45,24 @@ public enum MetronomeMath {
         }
     }
 
+    public static func countGroups(beatsPerBar: Int, subdivision: Subdivision) -> [[String]] {
+        (0..<max(1, beatsPerBar)).map {
+            countGroup(beatIndex: $0, subdivision: subdivision)
+        }
+    }
+
+    public static func currentCountLabel(
+        beatIndex: Int,
+        subdivisionIndex: Int,
+        subdivision: Subdivision
+    ) -> String {
+        let group = countGroup(beatIndex: beatIndex, subdivision: subdivision)
+        guard group.indices.contains(subdivisionIndex) else { return group[0] }
+        return subdivisionIndex == 0
+            ? group[0]
+            : "\(group[0]) \(group[subdivisionIndex])"
+    }
+
     public static func visualSubdivision(for playback: Subdivision) -> Subdivision {
         playback == .triplet ? .triplet : .sixteenth
     }
@@ -71,4 +89,3 @@ public enum MetronomeMath {
         min(2, max(0.8, Double(bpm) / 95))
     }
 }
-

@@ -44,6 +44,27 @@ public struct DrumPattern: Codable, Equatable, Identifiable, Sendable {
         normalizeSteps()
     }
 
+    public init(
+        id: String,
+        name: String,
+        detail: String,
+        beatsPerBar: Int = 4,
+        swing: Double = 0.5,
+        rawSteps: [DrumInstrument: [Int]]
+    ) {
+        let normalized = rawSteps.mapValues { values in
+            values.map { DrumStepLevel(rawValue: $0) ?? .off }
+        }
+        self.init(
+            id: id,
+            name: name,
+            detail: detail,
+            beatsPerBar: beatsPerBar,
+            swing: swing,
+            steps: normalized
+        )
+    }
+
     public var stepCount: Int { beatsPerBar * 4 }
 
     public mutating func resize(beats: Int) {
@@ -96,6 +117,26 @@ public enum DrumLibrary {
             ]
         ),
         make(
+            id: "offbeat-eighths",
+            name: "Offbeat Eighths",
+            detail: "Open upbeats over a steady kick and snare backbeat.",
+            hits: [
+                .hihat: [2: .accent, 6: .normal, 10: .accent, 14: .normal],
+                .snare: [4: .accent, 12: .accent],
+                .kick: [0: .accent, 8: .accent],
+            ]
+        ),
+        make(
+            id: "half-time",
+            name: "Half Time",
+            detail: "A broad half-time pocket with the backbeat on beat three.",
+            hits: [
+                .ride: [0: .accent, 2: .normal, 4: .normal, 6: .normal, 8: .accent, 10: .normal, 12: .normal, 14: .normal],
+                .snare: [8: .accent],
+                .kick: [0: .accent, 6: .normal, 12: .normal],
+            ]
+        ),
+        make(
             id: "shuffle",
             name: "Shuffle",
             detail: "Long-short swing flow with a strong backbeat.",
@@ -138,6 +179,15 @@ public enum DrumLibrary {
         pattern.name = "My Pattern"
         pattern.detail = "Editable 4/5-piece kit pattern."
         return pattern
+    }
+
+    public static func pattern(id: String, custom: DrumPattern? = nil) -> DrumPattern {
+        if id == "custom", let custom { return custom }
+        return presets.first(where: { $0.id == id }) ?? presets[0]
+    }
+
+    public static func stepCount(beatsPerBar: Int) -> Int {
+        max(2, min(12, beatsPerBar)) * 4
     }
 
     public static let defaultRoutine = PracticeRoutine(
