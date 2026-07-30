@@ -188,7 +188,7 @@ final class MetronomeEngine {
         movingAccent: Bool
     ) -> Bool {
         guard settings.subdivision == .sixteenth,
-              let pattern,
+              let pattern = drumPattern,
               stepInBar < pattern.stepCount else { return false }
         var sounded = false
         for instrument in DrumInstrument.allCases {

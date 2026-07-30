@@ -59,16 +59,11 @@ final class LocalMediaPlayerController: MediaPlaybackControlling {
         ) { [weak self] time in
             Task { @MainActor in
                 guard let self else { return }
-                currentTime = time.seconds.isFinite ? max(0, time.seconds) : 0
-                if player.timeControlStatus == .playing { state = .playing }
+                self.currentTime = time.seconds.isFinite ? max(0, time.seconds) : 0
+                if self.player.timeControlStatus == .playing { self.state = .playing }
             }
         }
         configureRemoteCommands()
-    }
-
-    deinit {
-        if let timeObserver { player.removeTimeObserver(timeObserver) }
-        if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
     }
 
     func load(_ item: LocalMediaItem) async {
@@ -156,13 +151,14 @@ final class LocalMediaPlayerController: MediaPlaybackControlling {
         commands.togglePlayPauseCommand.addTarget { [weak self] _ in
             Task { @MainActor in
                 guard let self else { return }
-                state == .playing ? pause() : play()
+                self.state == .playing ? self.pause() : self.play()
             }
             return .success
         }
         commands.changePlaybackPositionCommand.addTarget { [weak self] event in
             guard let event = event as? MPChangePlaybackPositionCommandEvent else { return .commandFailed }
-            Task { @MainActor in self?.seek(to: event.positionTime) }
+            let positionTime = event.positionTime
+            Task { @MainActor in self?.seek(to: positionTime) }
             return .success
         }
     }

@@ -104,7 +104,7 @@ final class PracticeController {
     func play() {
         guard let player else { return }
         playbackTask?.cancel()
-        if settings.keepAwake(environment: environment) {
+        if environment.settings.keepAwake {
             UIApplication.shared.isIdleTimerDisabled = true
         }
         playbackTask = Task { [weak self] in
@@ -225,13 +225,13 @@ final class PracticeController {
         loopTimer = Timer.scheduledTimer(withTimeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 guard let self,
-                      settings.loopEnabled,
-                      state == .playing else { return }
-                let bounds = loopBounds
-                if currentTime >= bounds.end - 0.018 {
-                    handleLoopBoundary(bounds: bounds)
+                      self.settings.loopEnabled,
+                      self.state == .playing else { return }
+                let bounds = self.loopBounds
+                if self.currentTime >= bounds.end - 0.018 {
+                    self.handleLoopBoundary(bounds: bounds)
                 }
-                if bars.isEmpty, duration > 0 { rebuildBars() }
+                if self.bars.isEmpty, self.duration > 0 { self.rebuildBars() }
             }
         }
     }
@@ -312,12 +312,6 @@ final class PracticeController {
             object: nil,
             queue: .main
         ) { [weak self] _ in Task { @MainActor in self?.restartLoop() } }
-    }
-}
-
-private extension PracticeSettings {
-    func keepAwake(environment: AppEnvironment) -> Bool {
-        environment.settings.keepAwake
     }
 }
 
