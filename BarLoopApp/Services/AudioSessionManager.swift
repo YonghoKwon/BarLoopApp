@@ -28,7 +28,10 @@ final class AudioSessionManager {
             object: session,
             queue: .main
         ) { [weak self] note in
-            Task { @MainActor in self?.handleInterruption(note) }
+            guard let rawType = note.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt else {
+                return
+            }
+            Task { @MainActor in self?.handleInterruption(rawType: rawType) }
         })
         observers.append(center.addObserver(
             forName: AVAudioSession.routeChangeNotification,
@@ -64,9 +67,8 @@ final class AudioSessionManager {
         state = .idle
     }
 
-    private func handleInterruption(_ notification: Notification) {
-        guard let raw = notification.userInfo?[AVAudioSessionInterruptionTypeKey] as? UInt,
-              let type = AVAudioSession.InterruptionType(rawValue: raw) else { return }
+    private func handleInterruption(rawType: UInt) {
+        guard let type = AVAudioSession.InterruptionType(rawValue: rawType) else { return }
         if type == .began {
             state = .interrupted
             return
